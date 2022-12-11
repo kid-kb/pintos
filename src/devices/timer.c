@@ -92,8 +92,8 @@ timer_sleep (int64_t ticks)
   int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
-    thread_yield ();
+
+  thread_sleep(ticks);
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -146,6 +146,21 @@ timer_udelay (int64_t us)
   real_time_delay (us, 1000 * 1000);
 }
 
+/* Used for multilevel feedback queue scheduling*/
+void
+schedule_mlfq ()
+{
+  if(!thread_mlfqs)
+    return;
+
+  mlfq_increment_recent_cpu ();
+  if (ticks % TIMER_FREQ == 0)
+    mlfq_update_recentcpu_and_load ();
+  else if (ticks % 4 == 0)
+    mlfq_update_priority (thread_current());
+  
+}
+
 /* Sleeps execution for approximately NS nanoseconds.  Interrupts
    need not be turned on.
 
@@ -171,7 +186,9 @@ static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
+  thread_check_wakeup(ticks);
   thread_tick ();
+  schedule_mlfq();
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

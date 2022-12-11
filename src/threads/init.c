@@ -134,6 +134,26 @@ pintos_init (void)
     run_actions (argv);
   } else {
     // TODO: no command line passed to kernel. Run interactively 
+    printf ("CS143A>\n");
+    while(1){
+      char input_string[51];
+      int index=0;
+      while(1) {
+        char ch = input_getc();
+        if((int)ch == 13)break;
+        input_string[index++]=ch;
+        printf("%c", ch);
+      } 
+      input_string[index]='\0';
+      if(strcmp("whoami",input_string) == 0 ){
+        printf("\nKeshav Bhalla\nCS143A>\n");
+      } else if(strcmp("exit",input_string) == 0){
+        printf("\nExiting\n");
+        break;
+      } else{
+        printf("\nInvalid Command\n");
+      }
+    }
   }
 
   /* Finish up. */
